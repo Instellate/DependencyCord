@@ -1,15 +1,17 @@
 ﻿using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Configuration;
 using System.Reflection;
 using DependencyCord.Types;
 using DependencyCord.Services;
 using DependencyCord;
 
-public static class Program
+public class Program
 {
     public static void Main(string[] args)
     {
         var builder = Host.CreateApplicationBuilder(args);
-        builder.Services.AddDependencyCord("ODEzNzA4Nzg2NDkzMTYxNTIz.YDTPXA.XNfGrAKmfC_-ILBlnYSpugixgUU",
+        builder.Configuration.AddUserSecrets<Program>();
+        builder.Services.AddDependencyCord(builder.Configuration["BotToken"]!,
         WebSocketIntents.Guilds | WebSocketIntents.GuildMembers, Assembly.GetExecutingAssembly());
 
         var app = builder.Build();

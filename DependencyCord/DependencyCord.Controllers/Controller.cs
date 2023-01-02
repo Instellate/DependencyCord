@@ -38,7 +38,6 @@ internal class ControllerManager
                 if (method.IsStatic) continue;
                 bool isAsync = (method.ReturnType == typeof(Task<ControllerResult>));
                 _commandInfos.Add(cnAttr.CommandName, new CommandInfo(type, method, isAsync));
-                Console.WriteLine($"Found command with name {cnAttr.CommandName}");
             }
         }
     }

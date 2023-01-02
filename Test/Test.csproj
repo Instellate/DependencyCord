@@ -1,11 +1,16 @@
 <Project Sdk="Microsoft.NET.Sdk">
+
   <ItemGroup>
     <ProjectReference Include="..\DependencyCord\DependencyCord.csproj" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.UserSecrets" Version="7.0.0" />
   </ItemGroup>
+
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>net7.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <UserSecretsId>4538e795-43d3-442f-a043-4f67b4483f7f</UserSecretsId>
   </PropertyGroup>
+
 </Project>
