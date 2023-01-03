@@ -19,10 +19,10 @@ public class Test : BaseController
     }
 
     [Command("test")]
-    public async Task<ControllerResult> TestCmd()
+    public ControllerResult TestCmd([FromOption("smth")] IUser smth)
     {
         return new Embed()
-            .SetTitle("Hello, world!")
-            .SetDescription("And fuck you init!");
+            .SetTitle("I got an interaction!")
+            .SetDescription(smth is null ? "You didn't select anything." :$"You selected user {smth.Username}");
     }
 }

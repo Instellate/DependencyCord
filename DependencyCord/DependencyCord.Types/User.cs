@@ -1,8 +1,9 @@
+using DependencyCord.Internal;
 using System.Text.Json.Serialization;
 
 namespace DependencyCord.Types;
 
-[JsonDerivedType(typeof(JsonUser))]
+[JsonConverter(typeof(JsonInterfaceConverter<IUser, JsonUser>))]
 public interface IUser
 {
     public string Id { get; set; }

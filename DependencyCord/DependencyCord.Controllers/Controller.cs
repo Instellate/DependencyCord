@@ -7,7 +7,9 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace DependencyCord.Controllers;
 
-internal record class CommandInfo(Type ClassT, MethodInfo Method, bool IsAsync);
+internal record class ParameterInfo(string Name, ApplicationCommandOptionType Type, bool CanBeNull = false);
+internal record class CommandInfo(Type ClassT, MethodInfo Method, List<ParameterInfo> Parameters, bool IsAsync = false);
+
 internal class ControllerManager
 {
     private IServiceProvider _services;
@@ -37,10 +39,40 @@ internal class ControllerManager
                 if (cnAttr is null) continue;
                 if (method.IsStatic) continue;
                 bool isAsync = (method.ReturnType == typeof(Task<ControllerResult>));
-                _commandInfos.Add(cnAttr.CommandName, new CommandInfo(type, method, isAsync));
+
+                var parameters = new List<ParameterInfo>();
+                foreach (var parameter in method.GetParameters())
+                {
+                    var foAttr = parameter.GetCustomAttribute<FromOptionAttribute>();
+                    if (foAttr is null)
+                        throw new Exception($"Parameter {parameter.Name} in method {method.Name} doesn't have FromOptionAttribute");
+                    bool canBeNull = !type.IsValueType || (Nullable.GetUnderlyingType(type) != null);
+                    if (parameter.ParameterType == typeof(IUser))
+                    {
+                        parameters.Add(new ParameterInfo(foAttr.OptionName,
+                            ApplicationCommandOptionType.User, canBeNull));
+                    }
+                    else if (parameter.ParameterType == typeof(string))
+                    {
+                        parameters.Add(new ParameterInfo(foAttr.OptionName,
+                            ApplicationCommandOptionType.String, canBeNull));
+                    }
+                    else if (parameter.ParameterType == typeof(int))
+                    {
+                        parameters.Add(new ParameterInfo(foAttr.OptionName,
+                            ApplicationCommandOptionType.Integer, canBeNull));
+                    }
+                    else
+                    {
+                        throw new Exception("Parameter {parameter.Name} in method {method.Name} doesn't support any of the types needed.");
+                    }
+                }
+                _commandInfos.Add(cnAttr.CommandName, new CommandInfo(type, method,
+                    parameters, isAsync));
             }
         }
     }
+
 
     public async Task<bool> ExecuteCommand(InteractionObject interaction)
     {
@@ -48,14 +80,50 @@ internal class ControllerManager
         {
             using (var scope = _services.CreateScope())
             {
+                object?[]? objects;
+                if (ci.Parameters.Count != 0)
+                {
+                    objects = new object?[ci.Parameters.Count];
+                    for (int i = 0; i < ci.Parameters.Count; i++)
+                    {
+                        var parameter = ci.Parameters[i];
+                        var value = interaction.Data.Options?
+                            .Where(o => o.Type == parameter.Type).FirstOrDefault(o => o.Name == parameter.Name);
+                        if (value is null)
+                            if (parameter.CanBeNull)
+                            {
+                                objects[i] = null;
+                            }
+                            else
+                                throw new NotImplementedException();
+                        else if (value is not null)
+                        {
+                            switch (parameter.Type)
+                            {
+                                case ApplicationCommandOptionType.String:
+                                    objects[i] = value.Value!.Value.GetString();
+                                    break;
+                                case ApplicationCommandOptionType.Integer:
+                                    objects[i] = value.Value!.Value.GetInt32();
+                                    break;
+                                case ApplicationCommandOptionType.User:
+                                    var id = value.Value!.Value.GetString();
+                                    var user = interaction.Data.Resolved?.Users!.GetValueOrDefault(id);
+                                    objects[i] = user;
+                                    break;
+                            }
+                        }
+                    }
+                }
+                else objects = null;
                 var obj = scope.ServiceProvider.GetRequiredService(ci.ClassT) as BaseController;
                 obj!.Data = interaction;
                 IControllerResult result;
                 if (ci.IsAsync)
                 {
-                    result = (await (ci.Method.Invoke(obj, null) as Task<ControllerResult>)!);
+                    result = (await (ci.Method.Invoke(obj, objects) as Task<IControllerResult>)!);
                 }
-                else result = (ci.Method.Invoke(obj, null) as IControllerResult)!;
+                else result = (ci.Method.Invoke(obj, objects) as IControllerResult)!;
 
                 var client = scope.ServiceProvider.GetRequiredService<IHttpClientFactory>().CreateClient("Discord");
                 var interactionResponse = new InteractionResponseObject();
@@ -72,6 +140,7 @@ internal class ControllerManager
         else return false;
     }
 }
+
 
 public abstract class BaseController
 {
@@ -133,5 +202,16 @@ public sealed class ControllerAttribute : Attribute
     public ControllerAttribute()
     {
 
+    }
+}
+
+[AttributeUsage(AttributeTargets.Parameter, Inherited = false, AllowMultiple = false)]
+public sealed class FromOptionAttribute : Attribute
+{
+    public string OptionName { get; set; }
+
+    public FromOptionAttribute(string name)
+    {
+        OptionName = name;
     }
 }

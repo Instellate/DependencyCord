@@ -1,10 +1,9 @@
+using DependencyCord.Internal;
 using System.Text.Json.Serialization;
 
 namespace DependencyCord.Types;
-/// <summary>
-/// Means "Interface Message"
-/// </summary>
-[JsonDerivedType(typeof(JsonMessageCreate))]
+
+[JsonConverter(typeof(JsonInterfaceConverter<IMessageCreate, JsonMessageCreate>))]
 public interface IMessageCreate
 {
     public string? Content { get; set; }
@@ -77,7 +76,7 @@ public enum MessageFlags
     FailedToMentionSomeRolesInThread = 1 << 8,
 }
 
-[JsonDerivedType(typeof(JsonMessage))]
+[JsonConverter(typeof(JsonInterfaceConverter<IMessage, JsonMessage>))]
 public interface IMessage
 {
     public string Id { get; set; }
@@ -111,7 +110,7 @@ public interface IMessage
     public int? Position { get; set; }
 }
 
-public class JsonMessage : IMessage
+internal class JsonMessage : IMessage
 {
     public required string Id { get; set; }
     public required IUser Author { get; set; }

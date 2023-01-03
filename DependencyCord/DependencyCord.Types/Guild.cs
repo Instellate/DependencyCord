@@ -1,8 +1,9 @@
+using DependencyCord.Internal;
 using System.Text.Json.Serialization;
 
 namespace DependencyCord.Types;
 
-[JsonDerivedType(typeof(JsonGuild))]
+[JsonConverter(typeof(JsonInterfaceConverter<IGuild, JsonGuild>))]
 public interface IGuild
 {
     public string Id { get; set; }
@@ -101,4 +102,37 @@ public class Emoji
     public bool? Managed { get; set; }
     public bool? Animated { get; set; }
     public bool? Available { get; set; }
+}
+
+[JsonConverter(typeof(JsonInterfaceConverter<IMember, JsonMember>))]
+public interface IMember
+{
+    public IUser? User { get; set; }
+    [JsonPropertyName("nick")]
+    public string? Nickname { get; set; }
+    public string? Avatar { get; set; }
+    // public List<IRole> Roles { get; set; }
+    public DateTime JoinedAt { get; set; }
+    public DateTime? PremiumSince { get; set; }
+    public bool Deaf { get; set; }
+    public bool Mute { get; set; }
+    public bool? Pending { get; set; }
+    public string? Permissions { get; set; }
+    public DateTime? CommunicationDisabledUntil { get; set; }
+}
+
+internal class JsonMember : IMember
+{
+    public IUser? User { get; set; }
+    [JsonPropertyName("nick")]
+    public string? Nickname { get; set; }
+    public string? Avatar { get; set; }
+    // public List<IRole> Roles { get; set; }
+    public required DateTime JoinedAt { get; set; }
+    public DateTime? PremiumSince { get; set; }
+    public bool Deaf { get; set; }
+    public bool Mute { get; set; }
+    public bool? Pending { get; set; }
+    public string? Permissions { get; set; }
+    public DateTime? CommunicationDisabledUntil { get; set; }
 }
