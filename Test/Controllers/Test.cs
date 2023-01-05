@@ -23,7 +23,7 @@ public class Test : BaseController
     {
         return new Embed()
             .SetTitle("I got an interaction!")
-            .SetDescription(smth is null ? "You didn't select anything." 
+            .SetDescription(smth is null ? "You didn't select anything."
                 : $"You selected user {smth.Username}");
     }
 }
