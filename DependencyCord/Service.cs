@@ -14,6 +14,13 @@ namespace DependencyCord;
 
 public static class DependencyCordExtensionServices
 {
+    /// <summary>
+    /// The primary (and only way) to add all the services for DependencyCord to work.
+    /// </summary>
+    /// <param name="services"></param>
+    /// <param name="token">Your bot token.</param>
+    /// <param name="intents">The intents you want.</param>
+    /// <param name="asm">Assembly to reflect all the controllers and methods.</param>
     public static void AddDependencyCord(this IServiceCollection services, string token, WebSocketIntents intents, Assembly asm)
     {
         services.AddSingleton<WebsocketClient>((service) => new WebsocketClient(

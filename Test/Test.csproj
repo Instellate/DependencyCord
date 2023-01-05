@@ -3,6 +3,7 @@
   <ItemGroup>
     <ProjectReference Include="..\DependencyCord\DependencyCord.csproj" />
     <PackageReference Include="Microsoft.Extensions.Configuration.UserSecrets" Version="7.0.0" />
+    <Using Include="DependencyCord" />
   </ItemGroup>
 
   <PropertyGroup>

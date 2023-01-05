@@ -3,7 +3,6 @@ using Microsoft.Extensions.Configuration;
 using System.Reflection;
 using DependencyCord.Types;
 using DependencyCord.Services;
-using DependencyCord;
 
 public class Program
 {
